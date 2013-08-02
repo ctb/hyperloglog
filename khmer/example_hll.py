@@ -4,26 +4,22 @@ import random
 from collections import defaultdict
 from khmer_hll import KmerCardinality
 
+TRIAL_N = 10000
+
 def trial():
 
 	k=22
 	
-	counter=KmerCardinality(8,k,4**(k/4),4**(k))
+	counter=KmerCardinality(10, k)
 	
-	alphabet={0:'A',1:'T',2:'G',3:'C'}
-	
-	given_string=''
-	
-	for i in range(1000):
-		given_string+=alphabet[random.randint(0,3)]
-	
+	given_string = ["A","C","G","T"]*(TRIAL_N/4)
+	random.shuffle(given_string)
+	given_string = "".join(given_string)
 	
 	counter.consume(given_string)
 	#counter.consume_file('*.fa')
 	
 	d=defaultdict(int)
-	
-	
 	
 	for i in range(len(given_string)-k+1):
 		d[given_string[i:i+k]] += 1
@@ -32,10 +28,11 @@ def trial():
 	estimated = counter.cardinality() 
 
 	error_rate=abs(real_num - estimated )/real_num
-	
 
+	print real_num, estimated
+	
 	if error_rate < 1:
-		print counter.large_prime/float(4**k) , error_rate 
+		print error_rate 
 	else:
 		print 'irrelevant'
 	

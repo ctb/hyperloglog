@@ -8,16 +8,16 @@ from hashlib import sha1
 
 class KmerCardinality(object):
 
-	def __init__(self,b,k,lower_limit,upper_limit):
+	def __init__(self,b,k):
 		self.k=k
 		self.b=b
 		self.alpha=self.get_alpha(self.b)
 		self.num_bins= 1 << self.b
-		self.bit_bins=[ 1L << i for i in range(160 - self.b + 1) ]
+
+		# key point: our range is only 2*k bits, not 160!
+		self.bit_bins=[ 1L << i for i in range(2*k - self.b + 1) ]
 		self.estimators = [0 for i in range(self.num_bins)]
-		num=random.randint( lower_limit , upper_limit)
-		self.large_prime=self.get_large_prime(num,self.is_prime)
-	
+
 	def get_alpha(self, b):
 		
 		if not (4 <= b <= 16):
@@ -45,22 +45,18 @@ class KmerCardinality(object):
 			return False
 		return all(n % i for i in self.mrange(3, int(math.sqrt(n)) + 1, 2))
 
-	def get_large_prime(self,n, tester):
-		if tester(n):
-			n += 1
-		if (n % 2 == 0) and (n != 2):
-			n += 1
+	def get_large_prime(self,n):
+		if n % 2 == 0:
+			n -= 1
 		while True:
-			if tester(n):
+			if self.is_prime(n):
 				break
-			n += 2
+			n -= 2
 		return n
 
 	def add(self,khmer_hash):
 
-
-		khmer_hash = khmer_hash % self.large_prime
-		
+		print (1 << self.b) - 1
 		bin = khmer_hash & ((1 << self.b) - 1)
 		remaining_bits = khmer_hash >> self.b
 		count = self.rho(remaining_bits)
